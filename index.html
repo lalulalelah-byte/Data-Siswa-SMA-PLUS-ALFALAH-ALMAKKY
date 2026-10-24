@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Data Siswa SMA</title>
+    <!-- Memuat Tailwind CSS untuk desain antarmuka yang modern dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <!-- ================= Bagian Kontainer Utama ================= -->
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header & Tombol Aksi Utama -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Data Siswa SMA Negeri 1</h1>
+                <p class="text-sm text-slate-500">Sistem Informasi Akademik & Administrasi Siswa</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <!-- Tombol Ekspor Data ke File CSV -->
+                <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                    📥 Ekspor CSV
+                </button>
+                <!-- Tombol Cetak / Print Halaman Web -->
+                <button onclick="window.print()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                    🖨️ Cetak
+                </button>
+                <!-- Tombol untuk Membuka Form Tambah Siswa -->
+                <button onclick="openModal('add')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                    ➕ Tambah Siswa
+                </button>
+            </div>
+        </header>
+
+        <!-- ================= Bagian Dashboard Statistik ================= -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Seluruh Siswa</p>
+                <h3 id="stat-total" class="text-3xl font-bold text-slate-900 mt-1">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Siswa Laki-Laki</p>
+                <h3 id="stat-lk" class="text-3xl font-bold text-blue-600 mt-1">0</h3>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Siswa Perempuan</p>
+                <h3 id="stat-pr" class="text-3xl font-bold text-pink-600 mt-1">0</h3>
+            </div>
+        </div>
+
+        <!-- ================= Toolbar Pencarian & Filter Kelas ================= -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col sm:flex-row justify-between gap-4">
+            <!-- Kotak Pencarian Real-time -->
+            <div class="w-full sm:w-72">
+                <input type="text" id="search-input" onkeyup="filterData()" placeholder="Cari nama atau NISN..." class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <!-- Dropdown Filter Kelas -->
+            <div class="flex items-center gap-2">
+                <label for="filter-kelas" class="text-sm font-medium text-slate-600">Filter Kelas:</label>
+                <select id="filter-kelas" onchange="filterData()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Semua Kelas</option>
+                    <option value="X IPA 1">X IPA 1</option>
+                    <option value="X IPA 2">X IPA 2</option>
+                    <option value="XI IPS 1">XI IPS 1</option>
+                    <option value="XI IPS 2">XI IPS 2</option>
+                    <option value="XII IPA 1">XII IPA 1</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ================= Bagian Tabel Data Siswa ================= -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                            <th class="py-3 px-4 font-semibold">No</th>
+                            <th class="py-3 px-4 font-semibold">NISN</th>
+                            <th class="py-3 px-4 font-semibold">Nama Lengkap</th>
+                            <th class="py-3 px-4 font-semibold">Kelas</th>
+                            <th class="py-3 px-4 font-semibold">Jenis Kelamin</th>
+                            <th class="py-3 px-4 font-semibold text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-table-body" class="divide-y divide-slate-200 text-sm text-slate-700">
+                        <!-- Baris data akan dimasukkan secara dinamis menggunakan JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Tampilan teks kosong jika data tidak ditemukan -->
+            <div id="empty-state" class="hidden text-center py-10 text-slate-400 text-sm">
+                Tidak ada data siswa yang ditemukan.
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Modal Form Tambah & Edit Siswa ================= -->
+    <div id="student-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="modal-title" class="font-bold text-lg text-slate-800">Tambah Data Siswa</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+            </div>
+            <form id="student-form" onsubmit="saveStudent(event)" class="p-6 space-y-4">
+                <input type="hidden" id="student-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">NISN</label>
+                    <input type="text" id="nisn" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Lengkap</label>
+                    <input type="text" id="nama" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kelas</label>
+                    <select id="kelas" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="X IPA 1">X IPA 1</option>
+                        <option value="X IPA 2">X IPA 2</option>
+                        <option value="XI IPS 1">XI IPS 1</option>
+                        <option value="XI IPS 2">XI IPS 2</option>
+                        <option value="XII IPA 1">XII IPA 1</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jenis Kelamin</label>
+                    <select id="jk" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Alamat</label>
+                    <textarea id="alamat" rows="2" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= Modal Detail Informasi Siswa ================= -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800">Detail Informasi Siswa</h3>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-3 text-sm">
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase">NISN</span>
+                    <p id="detail-nisn" class="font-medium text-slate-800 text-base"></p>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Nama Lengkap</span>
+                    <p id="detail-nama" class="font-medium text-slate-800 text-base"></p>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Kelas</span>
+                    <p id="detail-kelas" class="font-medium text-slate-800 text-base"></p>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Jenis Kelamin</span>
+                    <p id="detail-jk" class="font-medium text-slate-800 text-base"></p>
+                </div>
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Alamat</span>
+                    <p id="detail-alamat" class="font-medium text-slate-800 text-base"></p>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeDetailModal()" class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Logika JavaScript ================= -->
+    <script>
+        // Kunci penyimpanan data di dalam LocalStorage browser
+        const STORAGE_KEY = "sma_students_data";
+
+        // Fungsi untuk mengambil data dari LocalStorage, jika kosong buat data default
+        function getStudents() {
+            let data = localStorage.getItem(STORAGE_KEY);
+            if (!data) {
+                const defaultData = [
+                    { id: 1, nisn: "0081234567", nama: "Aditia Pratama", kelas: "X IPA 1", jk: "Laki-laki", alamat: "Jl. Merdeka No. 12, Jakarta" },
+                    { id: 2, nisn: "0082345678", nama: "Bunga Lestari", kelas: "X IPA 1", jk: "Perempuan", alamat: "Jl. Mawar No. 45, Jakarta" },
+                    { id: 3, nisn: "0073456789", nama: "Candra Wijaya", kelas: "XI IPS 2", jk: "Laki-laki", alamat: "Jl. Anggrek No. 8, Jakarta" }
+                ];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+                return defaultData;
+            }
+            return JSON.parse(data);
+        }
+
+        // Fungsi untuk menyimpan data array siswa ke LocalStorage
+        function saveStudents(students) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+        }
+
+        // Fungsi untuk merender/menampilkan data ke dalam tabel HTML
+        function renderTable(dataToRender) {
+            const tbody = document.getElementById("student-table-body");
+            const emptyState = document.getElementById("empty-state");
+            tbody.innerHTML = "";
+
+            if (dataToRender.length === 0) {
+                emptyState.classList.remove("hidden");
+            } else {
+                emptyState.classList.add("hidden");
+                dataToRender.forEach((student, index) => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-slate-500">${index + 1}</td>
+                        <td class="py-3 px-4 font-mono text-slate-600">${student.nisn}</td>
+                        <td class="py-3 px-4 font-medium text-slate-900">${student.nama}</td>
+                        <td class="py-3 px-4">${student.kelas}</td>
+                        <td class="py-3 px-4">${student.jk}</td>
+                        <td class="py-3 px-4 text-center space-x-2">
+                            <button onclick="viewDetail(${student.id})" class="text-emerald-600 hover:text-emerald-800 font-medium">Detail</button>
+                            <button onclick="openModal('edit', ${student.id})" class="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                            <button onclick="deleteStudent(${student.id})" class="text-rose-600 hover:text-rose-800 font-medium">Hapus</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            updateStatistics();
+        }
+
+        // Fungsi untuk memperbarui angka statistik di bagian atas dashboard
+        function updateStatistics() {
+            const students = getStudents();
+            const total = students.length;
+            const lk = students.filter(s => s.jk === "Laki-laki").length;
+            const pr = students.filter(s => s.jk === "Perempuan").length;
+
+            document.getElementById("stat-total").innerText = total;
+            document.getElementById("stat-lk").innerText = lk;
+            document.getElementById("stat-pr").innerText = pr;
+        }
+
+        // Fungsi untuk menyaring data berdasarkan kata kunci pencarian dan pilihan kelas
+        function filterData() {
+            const searchKeyword = document.getElementById("search-input").value.toLowerCase();
+            const selectedClass = document.getElementById("filter-kelas").value;
+            const students = getStudents();
+
+            const filtered = students.filter(student => {
+                const matchSearch = student.nama.toLowerCase().includes(searchKeyword) || student.nisn.includes(searchKeyword);
+                const matchClass = selectedClass === "" || student.kelas === selectedClass;
+                return matchSearch && matchClass;
+            });
+
+            renderTable(filtered);
+        }
+
+        // Fungsi untuk membuka modal tambah atau edit siswa
+        function openModal(mode, id = null) {
+            const modal = document.getElementById("student-modal");
+            const modalTitle = document.getElementById("modal-title");
+            const form = document.getElementById("student-form");
+            form.reset();
+
+            if (mode === 'add') {
+                modalTitle.innerText = "Tambah Data Siswa";
+                document.getElementById("student-id").value = "";
+            } else if (mode === 'edit') {
+                modalTitle.innerText = "Edit Data Siswa";
+                const students = getStudents();
+                const student = students.find(s => s.id === id);
+                if (student) {
+                    document.getElementById("student-id").value = student.id;
+                    document.getElementById("nisn").value = student.nisn;
+                    document.getElementById("nama").value = student.nama;
+                    document.getElementById("kelas").value = student.kelas;
+                    document.getElementById("jk").value = student.jk;
+                    document.getElementById("alamat").value = student.alamat;
+                }
+            }
+            modal.classList.remove("hidden");
+        }
+
+        // Fungsi untuk menutup modal form
+        function closeModal() {
+            document.getElementById("student-modal").classList.add("hidden");
+        }
+
+        // Fungsi untuk menyimpan data (menambah baru atau memperbarui data lama)
+        function saveStudent(event) {
+            event.preventDefault();
+            const id = document.getElementById("student-id").value;
+            const nisn = document.getElementById("nisn").value;
+            const nama = document.getElementById("nama").value;
+            const kelas = document.getElementById("kelas").value;
+            const jk = document.getElementById("jk").value;
+            const alamat = document.getElementById("alamat").value;
+
+            let students = getStudents();
+
+            if (id === "") {
+                // Tambah data baru
+                const newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+                students.push({ id: newId, nisn, nama, kelas, jk, alamat });
+            } else {
+                // Perbarui data yang sudah ada berdasarkan ID
+                students = students.map(s => s.id == id ? { id: Number(id), nisn, nama, kelas, jk, alamat } : s);
+            }
+
+            saveStudents(students);
+            closeModal();
+            filterData();
+        }
+
+        // Fungsi untuk menghapus data siswa berdasarkan ID
+        function deleteStudent(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus data siswa ini?")) {
+                let students = getStudents();
+                students = students.filter(s => s.id !== id);
+                saveStudents(students);
+                filterData();
+            }
+        }
+
+        // Fungsi untuk melihat detail lengkap siswa
+        function viewDetail(id) {
+            const students = getStudents();
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById("detail-nisn").innerText = student.nisn;
+                document.getElementById("detail-nama").innerText = student.nama;
+                document.getElementById("detail-kelas").innerText = student.kelas;
+                document.getElementById("detail-jk").innerText = student.jk;
+                document.getElementById("detail-alamat").innerText = student.alamat;
+                document.getElementById("detail-modal").classList.remove("hidden");
+            }
+        }
+
+        // Fungsi untuk menutup modal detail
+        function closeDetailModal() {
+            document.getElementById("detail-modal").classList.add("hidden");
+        }
+
+        // Fungsi untuk mengunduh data tabel ke format file CSV
+        function exportToCSV() {
+            const students = getStudents();
+            if (students.length === 0) {
+                alert("Tidak ada data untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,NISN,Nama Lengkap,Kelas,Jenis Kelamin,Alamat\r\n";
+            students.forEach(s => {
+                csvContent += `"${s.nisn}","${s.nama}","${s.kelas}","${s.jk}","${s.alamat}"\r\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "data_siswa_sma.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Menjalankan fungsi render saat halaman web selesai dimuat
+        window.onload = function() {
+            renderTable(getStudents());
+        };
+    </script>
+</body>
+</html>
