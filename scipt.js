@@ -17,9 +17,15 @@ function getStudents() {
     let data = localStorage.getItem(STORAGE_KEY);
     if (!data) {
         const defaultData = [
-            { id: 1, nisn: "0081234567", nama: "Aditia Pratama", kelas: "X IPA 1", jk: "Laki-laki", alamat: "Jl. Merdeka No. 12, Jakarta" },
-            { id: 2, nisn: "0082345678", nama: "Bunga Lestari", kelas: "X IPA 1", jk: "Perempuan", alamat: "Jl. Mawar No. 45, Jakarta" },
-            { id: 3, nisn: "0073456789", nama: "Candra Wijaya", kelas: "XI IPS 2", jk: "Laki-laki", alamat: "Jl. Anggrek No. 8, Jakarta" }
+             { id: 1, nisn: "3098472186", nama: "Ainu Zahroh", kelas: "XII SASTRA B", jk: "Perempuan", alamat: "Jl. Pagedangan Kec.Turen Malang" },
+             { id: 2, nisn: "0101337663", nama: "A.Zaidan Bahtiar", kelas: "XI SASTRA A", jk: "Laki-laki", alamat: "Jl. Sumber Duren Kec.Gedangan Malang" },
+             { id: 3, nisn: "0116508654", nama: "Abay Amroe Rafael Hariono", kelas: "X A", jk: "Laki-laki", alamat: "Jl. KH.Ahmad Dahlan Kec.Gondanglegi Malang" },
+             { id: 4, nisn: "3103575421", nama: "Abdul Aziz Alhamid", kelas: "X A", jk: "Laki-laki", alamat: "Jl.Krajan Kec.Gondanglegi Malang" },
+             { id: 5, nisn: "3098084063", nama: "Abdul Ghofar Rozin", kelas: "XI SASTRA A", alamat: "Jl.Prangas Kec.Sumber Manjing Wetan Malang" },
+             { id: 6, nisn: "0123968700", nama: "Abiel ALgafuri Firdaus", kelas: "X B", alamat: "Jl.Simpang Mataram Kec.Dampit Malang" },
+             { id: 7, nisn: "0084029428", nama: "Aburizal Hafidz", kelas: "XII SASTRA A",  alamat: "JL.Raya Talangagung Kec.Kepanjen Malang" },
+             { id: 8, nisn: "0117677439", nama: "Achmad Fardani", kelas: "X A", alamat: "Jl.Ngipik Kec.Pagelaran Malang" },
+             { id: 9, nisn: "3110747945", nama: "Achmad Nurul Ula Alfarkhani", kelas: "X A", alamat: "Jl.Tangkil Sari Kec.Tajinan Malang" },
         ];
         localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
         return defaultData;
